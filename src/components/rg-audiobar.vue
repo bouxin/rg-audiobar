@@ -22,10 +22,9 @@
 </template>
 
 <script>
-import {downloadFromUrl} from "@/util/downloader";
-
+import {downloadFromUrl} from "@/util/downloader"
 export default {
-  name: "rugoo-audiobar",
+  name: "rg-audiobar",
   props: {
     audio: {
       type: String,

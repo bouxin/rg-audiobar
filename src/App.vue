@@ -1,16 +1,18 @@
 <template>
   <div id="app">
-    <rugoo-audiobar></rugoo-audiobar>
+    <hello-world />
   </div>
 </template>
 
 <script>
-import RugooAudiobar from "@/components/rugoo-audiobar";
+import RugooAudiobar from "@/components/rg-audiobar";
+import HelloWorld from "@/components/HelloWorld";
 
 export default {
   name: 'App',
   components: {
     RugooAudiobar,
+    HelloWorld
   }
 }
 </script>
