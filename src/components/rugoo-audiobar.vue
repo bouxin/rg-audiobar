@@ -1,7 +1,7 @@
 <template>
   <div class="rg-audio-container">
     <audio id="player" preload>
-      <source :src="audiomp3" type="audio/mpeg" />
+      <source :src="audiomp3" type="audio" />
     </audio>
     <div id="controls">
       <div id="playPause" :class="playStyle" @click="playAudio" />
@@ -36,9 +36,11 @@ export default {
     return {
       audioname: "hello",
       playStyle: 'fa-play',
-      audioogg: "http://www.alexkatz.me/codepen/music/interlude.ogg",
-      audiomp3: "http://www.alexkatz.me/codepen/music/interlude.mp3",
+      audiomp3: 'https://sub.rugoo.com.cn/music/the-all-clear.mp3',
+      volumeDisplayed: false,
       metadata: {
+        timelineWith: 0,
+        progressbarWidth: 0,
         currentTime: "00:00",
         maxDuration: "00:00",
       }
@@ -58,6 +60,7 @@ export default {
       music.src = this.audiomp3
       music.addEventListener("loadedmetadata", () => {
         this.metadata.maxDuration = this.formatDuration(music.duration)
+        this.metadata.timelineWith = timeline.offsetWidth
       }, false)
       music.addEventListener("timeupdate", (ev) => {
         if (ev) {
@@ -78,6 +81,11 @@ export default {
         progressbar.style.width = parseInt(timeline.offsetWidth * clickPercent) + "px"
         this.metadata.currentTime = this.formatDuration(currentSeconds)
         music.currentTime = currentSeconds
+        if (music.paused) {
+          // do nothing
+        } else {
+          music.play()
+        }
       })
       volumeTint.addEventListener("click", (ev) => {
         const music = document.getElementById("player")
@@ -93,9 +101,6 @@ export default {
       volumeIcon.addEventListener("click", () => {
         this.appearVolumeSlider()
       }, false)
-      // volumeIcon.addEventListener("mouseenter", () => {
-      //   this.appearVolumeSlider()
-      // })
     },
     playAudio() {
       const audioPlayer = document.getElementById("player")
@@ -129,23 +134,20 @@ export default {
     },
     appearVolumeSlider() {
       const volumeSliderControl = document.getElementById("volume-slider-control")
-      const timeline = document.getElementById("timeline")
       const progressbar = document.getElementById("progressbar")
-      if (!this.onvolume.control) {
-        const maxTimelineWidth = timeline.offsetWidth
+      if (!this.volumeDisplayed) {
         const currentProgress = progressbar.offsetWidth
         this.displayVolumeSlider()
         // 1. 保存原先timeline&progressbar长度
-        this.onvolume.timelineWidth = maxTimelineWidth
-        this.onvolume.progressbarWidth = currentProgress
+        this.metadata.progressbarWidth = currentProgress
         // 2. 设置timeline新值
-        const curTimelineWidth = maxTimelineWidth - volumeSliderControl.offsetWidth
-        const curProgressbarWidth = progressbar.offsetWidth * (curTimelineWidth / maxTimelineWidth)
+        const curTimelineWidth = this.metadata.timelineWith - volumeSliderControl.offsetWidth
+        const curProgressbarWidth = progressbar.offsetWidth * (curTimelineWidth / this.metadata.timelineWith)
         this.setTimeline(curTimelineWidth, curProgressbarWidth)
       } else {
         this.hideVolumeSlider()
       }
-      this.onvolume.control = !this.onvolume.control
+      this.volumeDisplayed = !this.volumeDisplayed
     },
     displayVolumeSlider() {
       (document.getElementById("volume-slider-control")).style.display = "block"
@@ -163,11 +165,11 @@ export default {
     recoverTimeline() {
       const timeline = document.getElementById("timeline")
       const progressbar = document.getElementById("progressbar")
-      timeline.style.width = this.onvolume.timelineWidth + "px"
-      progressbar.style.width = this.onvolume.progressbarWidth + "px"
+      timeline.style.width = this.metadata.timelineWith + "px"
+      progressbar.style.width = this.metadata.progressbarWidth + "px"
     },
     downloadAudio() {
-      downloadFromUrl(this.audiomp3)
+      // downloadFromUrl(this.audiomp3)
     }
   }
 }
