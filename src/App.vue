@@ -1,17 +1,16 @@
 <template>
   <div id="app">
-    <img alt="Vue logo" src="./assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js App"/>
+    <rugoo-audiobar></rugoo-audiobar>
   </div>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
+import RugooAudiobar from "@/components/rugoo-audiobar";
 
 export default {
   name: 'App',
   components: {
-    HelloWorld
+    RugooAudiobar,
   }
 }
 </script>
