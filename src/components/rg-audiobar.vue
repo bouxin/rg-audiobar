@@ -1,20 +1,20 @@
 <template>
   <div class="rg-audio-container">
     <audio id="player" preload>
-      <source :src="audiomp3" type="audio" />
+      <source :src="mp3" type="audio" />
     </audio>
     <div id="controls">
-      <div id="playPause" :class="playStyle" @click="playAudio" />
-      <span id="playtime">{{metadata.currentTime}}/{{metadata.maxDuration}}</span>
+      <div id="playPause" class="fa-play" @click="playMusic" />
+      <span id="playtime">{{metadata.currentTimePoint}}/{{metadata.playDuration}}</span>
       <div id="timeline">
         <div id="progressbar"></div>
       </div>
-      <div id="volume-slider-control">
-        <div id="volume-tint">
-          <div id="volumebar"></div>
+      <div id="volume-slider">
+        <div id="volume-bar">
+          <div id="current-volume"></div>
         </div>
       </div>
-      <div id="volume">
+      <div id="volume" class="fa-volume">
       </div>
       <div id="download" @click="downloadAudio" />
     </div>
@@ -33,15 +33,13 @@ export default {
   },
   data() {
     return {
-      audioname: "hello",
-      playStyle: 'fa-play',
-      audiomp3: 'https://sub.rugoo.com.cn/music/the-all-clear.mp3',
+      audioName: "hello",
+      mp3: 'https://sub.rugoo.com.cn/music/the-all-clear.mp3',
       volumeDisplayed: false,
       metadata: {
-        timelineWith: 0,
-        progressbarWidth: 0,
-        currentTime: "00:00",
-        maxDuration: "00:00",
+        lastVolume: 0,
+        currentTimePoint: "00:00",
+        playDuration: "00:00",
       }
     }
   },
@@ -50,126 +48,159 @@ export default {
   },
   methods: {
     initAudio() {
-      const music = document.getElementById("player")
-      const timeline = document.getElementById("timeline")
-      const progressbar = document.getElementById("progressbar")
-      const volumeSliderControl = document.getElementById("volume-slider-control")
-      const volumeTint = document.getElementById("volume-tint")
-      const volumeIcon = document.getElementById("volume")
-      music.src = this.audiomp3
+      /*
+     1. Initializing audio metadata, playDuration
+     2. Event listener, "timeupdate", "ended"
+     3. Initializing music controls
+       a. Music timeline event listener, "click"
+       b. Volume icon event listener, "click", "mouseenter"
+       c. Volume bar event listener, "mouseleave"
+       d. Volume control event listener, "click"
+     */
+      const music = this.getAudioPlayer()
+      const timeline = this.getMusicTimeline()
+      const progressbar = this.getTimelineProgressbar()
+      const volumeSlider = this.getVolumeSlider()
+      const volumebar = this.getVolumebar()
+      const volumeIcon = this.getVolumeIcon()
+
+      // Ensure audio source would be loaded eventually
+      music.src = this.mp3
+
       music.addEventListener("loadedmetadata", () => {
-        this.metadata.maxDuration = this.formatDuration(music.duration)
-        this.metadata.timelineWith = timeline.offsetWidth
+        this.metadata.playDuration = this.formatMusicPlaytime(music.duration)
+        this.metadata.currentTimePoint = this.formatMusicPlaytime(music.currentTime)
+        this.metadata.lastVolume = music.volume
+        // Initializing music volume to 50%
+        this.getVolume().style.width = this.toCssAccept(0.5 * 100)
       }, false)
+
       music.addEventListener("timeupdate", (ev) => {
-        if (ev) {
-          let percent = music.currentTime / music.duration
-          this.metadata.currentTime = this.formatDuration(music.currentTime)
-          progressbar.style.width = parseInt(percent * timeline.offsetWidth) + "px"
-        }
+        let playtimePercentage = music.currentTime / music.duration
+        // refresh views
+        this.metadata.currentTimePoint = this.formatMusicPlaytime(music.currentTime)
+        progressbar.style.width = this.toCssAccept(playtimePercentage * timeline.offsetWidth)
       }, false)
+
       music.addEventListener("ended", ev => {
-        if (ev) {
-          this.playStyle = 'fa-play'
-        }
+        const paused = document.getElementById("playPause")
+        paused.setAttribute("class", 'fa-play')
       }, false)
+
       timeline.addEventListener("click", ev => {
-        let timelineXClicked = timeline.getBoundingClientRect().left
-        let clickPercent = (ev.clientX - timelineXClicked) / timeline.offsetWidth
-        let currentSeconds = this.calculateCurrentTime(clickPercent)
-        progressbar.style.width = parseInt(timeline.offsetWidth * clickPercent) + "px"
-        this.metadata.currentTime = this.formatDuration(currentSeconds)
-        music.currentTime = currentSeconds
-        if (music.paused) {
-          // do nothing
-        } else {
+        let timelineXCoordinate = timeline.getBoundingClientRect().left
+        let currentProgressbarLength = ev.clientX - timelineXCoordinate
+        let playtimePercentage = currentProgressbarLength / timeline.offsetWidth
+        let newPlaytime = this.newMusicPlaytimeByPercentage(playtimePercentage)
+
+        music.currentTime = newPlaytime
+        if (!music.paused) {
+          // call music.play() when timeline changed immediately
           music.play()
         }
+        
+        progressbar.style.width = this.toCssAccept(currentProgressbarLength)
+        this.metadata.currentTime = this.formatMusicPlaytime(newPlaytime)
       })
-      volumeTint.addEventListener("click", (ev) => {
-        const music = document.getElementById("player")
-        const volumebar = document.getElementById("volumebar")
-        let volumeTintX = volumeTint.getBoundingClientRect().left
-        let clickPercent = (ev.clientX - volumeTintX) / volumeTint.offsetWidth
-        volumebar.style.width = parseInt(volumeTint.offsetWidth * clickPercent) + "px"
-        music.volume = parseFloat(clickPercent)
-      })
-      volumeSliderControl.addEventListener("mouseleave", () => {
-        this.hideVolumeSlider()
-      }, false)
+
       volumeIcon.addEventListener("click", () => {
-        this.appearVolumeSlider()
+        if (music.volume === 0) {
+          volumeIcon.setAttribute("class", 'fa-volume')
+          music.volume = this.metadata.lastVolume
+        } else {
+          volumeIcon.setAttribute("class", 'fa-volume-mute')
+          this.metadata.lastVolume = music.volume
+          music.volume = 0
+        }
       }, false)
+
+      volumeIcon.addEventListener("mouseenter", () => {
+        this.makeVolumeSliderVisible()
+        volumeSlider.addEventListener("mouseleave", () => {
+          this.makeVolumeSliderInvisible()
+        }, false)
+      }, false)
+
+      volumebar.addEventListener("click", (ev) => {
+        let volumebarXCoordinate = volumebar.getBoundingClientRect().left
+        let currentVolumebarLength = ev.clientX - volumebarXCoordinate
+        let percentage = currentVolumebarLength / volumebar.offsetWidth
+        this.getVolume().style.width = this.toCssAccept(percentage * 100)
+        music.volume = parseFloat((currentVolumebarLength / volumebar.offsetWidth).toString())
+      })
     },
-    playAudio() {
-      const audioPlayer = document.getElementById("player")
+    playMusic() {
+      const audioPlayer = this.getAudioPlayer()
+      const play = document.getElementById("playPause")
       if (audioPlayer.paused) {
         audioPlayer.play()
-        this.playStyle = 'fa-pause'
+        play.setAttribute("class", 'fa-pause')
       } else {
         audioPlayer.pause()
-        this.playStyle = 'fa-play'
+        play.setAttribute("class", 'fa-play')
       }
     },
-    calculateCurrentTime(percent) {
-      let duration = this.metadata.maxDuration
-      let dur = duration.split(":")
-      let seconds = parseInt(dur[0]) * 60 + parseInt(dur[1])
-      return parseFloat(seconds * percent)
+    makeVolumeSliderVisible() {
+      const volumeSlider = this.getVolumeSlider()
+      let accurateTimelineLength = this.getMusicTimeline().offsetWidth
+      let accurateProgressbarLength = this.getTimelineProgressbar().offsetWidth
+      // display volume slider, this action must behind the accurate*Length return
+      volumeSlider.style.display = "block"
+      this.scaleMusicTimelineByOffset(accurateTimelineLength, accurateProgressbarLength, -volumeSlider.offsetWidth)
     },
-    formatDuration(duration) {
-      let date = new Date(0)
-      date.setSeconds(parseInt(duration))
-      return date.toISOString().substr(14, 5)
-      // let min = parseInt(duration / 60).toString()
-      // let sec = parseInt(duration % 60).toString()
-      // if (min.length === 1) {
-      //   min = "0" + min
-      // }
-      // if (sec.length === 1) {
-      //   sec = "0" + sec
-      // }
-      // return min + ":" + sec
-    },
-    appearVolumeSlider() {
-      const volumeSliderControl = document.getElementById("volume-slider-control")
-      const progressbar = document.getElementById("progressbar")
-      if (!this.volumeDisplayed) {
-        const currentProgress = progressbar.offsetWidth
-        this.displayVolumeSlider()
-        // 1. 保存原先timeline&progressbar长度
-        this.metadata.progressbarWidth = currentProgress
-        // 2. 设置timeline新值
-        const curTimelineWidth = this.metadata.timelineWith - volumeSliderControl.offsetWidth
-        const curProgressbarWidth = progressbar.offsetWidth * (curTimelineWidth / this.metadata.timelineWith)
-        this.setTimeline(curTimelineWidth, curProgressbarWidth)
-      } else {
-        this.hideVolumeSlider()
-      }
-      this.volumeDisplayed = !this.volumeDisplayed
-    },
-    displayVolumeSlider() {
-      (document.getElementById("volume-slider-control")).style.display = "block"
-    },
-    hideVolumeSlider() {
-      (document.getElementById("volume-slider-control")).style.display = "none"
-      this.recoverTimeline()
-    },
-    setTimeline(timelineWidth, progressbarWidth) {
-      const timeline = document.getElementById("timeline")
-      const progressbar = document.getElementById("progressbar")
-      timeline.style.width = timelineWidth + "px"
-      progressbar.style.width = progressbarWidth + "px"
-    },
-    recoverTimeline() {
-      const timeline = document.getElementById("timeline")
-      const progressbar = document.getElementById("progressbar")
-      timeline.style.width = this.metadata.timelineWith + "px"
-      progressbar.style.width = this.metadata.progressbarWidth + "px"
+    makeVolumeSliderInvisible() {
+      const volumeSlider = this.getVolumeSlider()
+      let accurateTimelineLength = this.getMusicTimeline().offsetWidth
+      let accurateProgressbarLength = this.getTimelineProgressbar().offsetWidth
+
+      this.scaleMusicTimelineByOffset(accurateTimelineLength, accurateProgressbarLength, volumeSlider.offsetWidth)
+      volumeSlider.style.display = "none"
     },
     downloadAudio() {
       // downloadFromUrl(this.audiomp3)
-    }
+    },
+    newMusicPlaytimeByPercentage(percent) {
+      let duration = this.metadata.playDuration
+      let dur = duration.split(":")
+      let seconds = parseInt(dur[0]) * 60 + parseInt(dur[1])
+      return parseFloat((seconds * percent).toString())
+    },
+    formatMusicPlaytime(duration) {
+      let date = new Date(0)
+      date.setSeconds(parseInt(duration))
+      return date.toISOString().substr(14, 5)
+    },
+    toCssAccept(num) {
+      return parseInt(num).toString() + "px"
+    },
+    scaleMusicTimelineByOffset(accTimelineLen, accProgressbarLen, offset) {
+      let scaledTimelineLength = accTimelineLen + offset
+      let scale = accProgressbarLen / accTimelineLen
+
+      this.getMusicTimeline().style.width = this.toCssAccept(scaledTimelineLength)
+      this.getTimelineProgressbar().style.width = this.toCssAccept(scale * scaledTimelineLength)
+    },
+    getAudioPlayer() {
+      return document.getElementById("player")
+    },
+    getVolumeSlider() {
+      return document.getElementById("volume-slider")
+    },
+    getVolumebar() {
+      return document.getElementById("volume-bar")
+    },
+    getVolume() {
+      return document.getElementById("current-volume")
+    },
+    getVolumeIcon() {
+      return document.getElementById("volume")
+    },
+    getMusicTimeline() {
+      return document.getElementById("timeline")
+    },
+    getTimelineProgressbar() {
+      return document.getElementById("progressbar")
+    },
   }
 }
 </script>
@@ -198,7 +229,7 @@ export default {
   outline-style: none;
   border-style: none;
   padding: unset;
-  margin-left: 10px;
+  margin-left: 8px;
   width: 14px;
   height: 14px;
 }
@@ -230,8 +261,6 @@ export default {
   height: 6px;
 }
 #volume {
-  background-image: url("../assets/volume.png");
-  background-size: 100% 100%;
   border-style: none;
   outline-style: none;
   width: 14px;
@@ -239,23 +268,31 @@ export default {
   cursor: pointer;
   margin-left: 5px;
 }
-#volume-slider-control {
+.fa-volume {
+  background-image: url("../assets/volume.png");
+  background-size: 100% 100%;
+}
+.fa-volume-mute {
+  background-image: url("../assets/mute.png");
+  background-size: 100% 100%;
+}
+#volume-slider {
   display: none;
   background: gray;
   border-radius: 10px;
   padding: 5px 10px;
 }
-#volume-tint {
+#volume-bar {
   cursor: pointer;
   border-radius: 10px;
   width: 100px;
   height: 6px;
   background: whitesmoke;
 }
-#volumebar {
+#current-volume {
   border-radius: inherit;
   max-width: inherit;
-  width: 30px;
+  width: 0;
   height: 6px;
   background: darkgray;
 }
