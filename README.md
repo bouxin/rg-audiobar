@@ -1,11 +1,11 @@
-# custom-audiobar
+# custom-audio-player
 Html / Vue audio control bar
 
 单音频播放控制器>>>>播放/暂停，进度控制，音量控制，音频下载
 
 ## Demo
 
-[Play Demo](src/example/play%20demo.mp4)
+[Play Demo](https://sub.rugoo.com.cn/videos/rg-audio-player-demo.mp4)
 
 ## Project setup
 ```

@@ -24,7 +24,7 @@
 <script>
 import {downloadFromUrl} from "@/util/downloader"
 export default {
-  name: "rg-audiobar",
+  name: "rg-audio-player",
   props: {
     audio: {
       type: String,

@@ -5,13 +5,13 @@
 </template>
 
 <script>
-import RugooAudiobar from "@/components/rg-audiobar";
+import RugooAudioPlayer from "@/components/rg-audio-player";
 import HelloWorld from "@/components/HelloWorld";
 
 export default {
   name: 'App',
   components: {
-    RugooAudiobar,
+    RugooAudioPlayer,
     HelloWorld
   }
 }

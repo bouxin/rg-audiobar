@@ -1,15 +1,15 @@
 <template>
   <div class="hello">
     <h1>{{ msg }}</h1>
-    <rg-audiobar></rg-audiobar>
+    <rg-audio-player></rg-audio-player>
   </div>
 </template>
 
 <script>
-import RgAudiobar from "@/components/rg-audiobar";
+import RgAudioPlayer from "@/components/rg-audio-player";
 export default {
   name: 'HelloWorld',
-  components: {RgAudiobar},
+  components: {RgAudioPlayer},
   props: {
     msg: String,
     default() {
