@@ -98,23 +98,26 @@ export default {
         let newPlaytime = this.newMusicPlaytimeByPercentage(playtimePercentage)
 
         music.currentTime = newPlaytime
+        this.metadata.currentTime = this.formatMusicPlaytime(newPlaytime)
         if (!music.paused) {
           // call music.play() when timeline changed immediately
           music.play()
         }
-        
+
         progressbar.style.width = this.toCssAccept(currentProgressbarLength)
-        this.metadata.currentTime = this.formatMusicPlaytime(newPlaytime)
       })
 
       volumeIcon.addEventListener("click", () => {
         if (music.volume === 0) {
+          let lastVolume = this.metadata.lastVolume
+          music.volume = lastVolume
+          this.getVolume().style.width = this.toCssAccept(lastVolume * 100)
           volumeIcon.setAttribute("class", 'fa-volume')
-          music.volume = this.metadata.lastVolume
         } else {
-          volumeIcon.setAttribute("class", 'fa-volume-mute')
           this.metadata.lastVolume = music.volume
           music.volume = 0
+          this.getVolume().style.width = this.toCssAccept(0)
+          volumeIcon.setAttribute("class", 'fa-volume-mute')
         }
       }, false)
 
@@ -161,7 +164,7 @@ export default {
       volumeSlider.style.display = "none"
     },
     downloadAudio() {
-      // downloadFromUrl(this.audiomp3)
+      downloadFromUrl(this.mp3)
     },
     newMusicPlaytimeByPercentage(percent) {
       let duration = this.metadata.playDuration

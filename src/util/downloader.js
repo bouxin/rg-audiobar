@@ -102,9 +102,13 @@ export function downloadFile(data, filename, mimeType) {
 
 export function downloadFromUrl(url, filename) {
     filename = filename || new Date().getTime()
+
     let xhr = new XMLHttpRequest()
+
     xhr.open("GET", url, true)
+
     xhr.responseType = 'blob'
+
     xhr.onload = () => {
         if (this.status === 200) {
             save(this.response, filename)
@@ -112,9 +116,11 @@ export function downloadFromUrl(url, filename) {
             // on custom error
         }
     }
+
     xhr.onerror = (ev) => {
-        console.log(ev)
+        // console.log(ev)
     }
+
     xhr.send()
 
     function save(blob, filename) {
