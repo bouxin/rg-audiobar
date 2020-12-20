@@ -71,9 +71,12 @@ export default {
       music.addEventListener("loadedmetadata", () => {
         this.metadata.playDuration = this.formatMusicPlaytime(music.duration)
         this.metadata.currentTimePoint = this.formatMusicPlaytime(music.currentTime)
-        this.metadata.lastVolume = music.volume
+
         // Initializing music volume to 50%
-        this.getVolume().style.width = this.toCssAccept(0.5 * 100)
+        let initializedVolume = 0.5
+        music.volume = initializedVolume
+        this.metadata.lastVolume = initializedVolume
+        this.getVolume().style.width = this.toCssAccept(initializedVolume * 100)
       }, false)
 
       music.addEventListener("timeupdate", (ev) => {
