@@ -34,7 +34,8 @@ export default {
   data() {
     return {
       audioName: "hello",
-      mp3: 'https://sub.rugoo.com.cn/music/the-all-clear.mp3',
+      // mp3: 'https://sub.rugoo.com.cn/music/the-all-clear.mp3',
+      mp3: "https://www.0dutv.com/upload/dance/20200316/C719452E3C7834080007662021EA968E.mp3",
       volumeDisplayed: false,
       metadata: {
         lastVolume: 0,
@@ -266,7 +267,7 @@ export default {
   width: 14px;
   height: 14px;
   cursor: pointer;
-  margin-left: 5px;
+  margin-left: 4px;
 }
 .fa-volume {
   background-image: url("../assets/volume.png");
@@ -301,9 +302,9 @@ export default {
   background-size: 100% 100%;
   border: 0;
   outline: none;
-  width: 13px;
-  height: 13px;
+  width: 14px;
+  height: 14px;
   cursor: pointer;
-  margin-left: 5px;
+  margin-left: 7px;
 }
 </style>
