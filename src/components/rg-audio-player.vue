@@ -1,7 +1,7 @@
 <template>
   <div class="rg-audio-container">
     <audio id="player" preload>
-      <source :src="mp3" type="audio" />
+      <source :src="audio" type="audio" />
     </audio>
     <div id="controls">
       <div id="playPause" class="fa-play" @click="playMusic" />
@@ -35,7 +35,7 @@ export default {
     return {
       audioName: "hello",
       // mp3: 'https://sub.rugoo.com.cn/music/the-all-clear.mp3',
-      mp3: "https://www.0dutv.com/upload/dance/20200316/C719452E3C7834080007662021EA968E.mp3",
+      // mp3: "https://www.0dutv.com/upload/dance/20200316/C719452E3C7834080007662021EA968E.mp3",
       volumeDisplayed: false,
       metadata: {
         lastVolume: 0,
@@ -66,7 +66,7 @@ export default {
       const volumeIcon = this.getVolumeIcon()
 
       // Ensure audio source would be loaded eventually
-      music.src = this.mp3
+      music.src = this.audio
 
       music.addEventListener("loadedmetadata", () => {
         this.metadata.playDuration = this.formatMusicPlaytime(music.duration)
@@ -164,7 +164,7 @@ export default {
       volumeSlider.style.display = "none"
     },
     downloadAudio() {
-      downloadFromUrl(this.mp3)
+      downloadFromUrl(this.audio)
     },
     newMusicPlaytimeByPercentage(percent) {
       let duration = this.metadata.playDuration
