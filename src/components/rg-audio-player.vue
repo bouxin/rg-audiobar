@@ -136,8 +136,8 @@ export default {
         let volumebarXCoordinate = volumebar.getBoundingClientRect().left
         let currentVolumebarLength = ev.clientX - volumebarXCoordinate
         let percentage = currentVolumebarLength / volumebar.offsetWidth
-        this.getVolume().style.width = this.toCssAccept(percentage * 100)
-        music.volume = parseFloat((currentVolumebarLength / volumebar.offsetWidth).toString())
+        this.getVolume().style.width = this.toCssAccept(currentVolumebarLength)
+        music.volume = parseFloat(percentage.toString())
       })
     },
     playMusic() {
