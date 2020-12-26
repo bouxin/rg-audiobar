@@ -1,22 +1,22 @@
 <template>
   <div class="rg-audio-container">
-    <audio id="player" preload>
+    <audio class="player" preload>
       <source :src="audio" type="audio" />
     </audio>
-    <div id="controls">
-      <div id="playPause" class="fa-play" @click="playMusic" />
-      <span id="playtime">{{metadata.currentTimePoint}}/{{metadata.playDuration}}</span>
-      <div id="timeline">
-        <div id="progressbar"></div>
+    <div class="controls">
+      <div class="playPause fa-play" @click="playMusic" />
+      <span class="playtime">{{metadata.currentTimePoint}}/{{metadata.playDuration}}</span>
+      <div class="timeline">
+        <div class="progressbar"></div>
       </div>
-      <div id="volume-slider">
-        <div id="volume-bar">
-          <div id="current-volume"></div>
+      <div class="volume-slider">
+        <div class="volume-bar">
+          <div class="current-volume"></div>
         </div>
       </div>
-      <div id="volume" class="fa-volume">
+      <div class="volume fa-volume">
       </div>
-      <div id="download" @click="downloadAudio" />
+      <div class="download" @click="downloadAudio" />
     </div>
   </div>
 </template>
@@ -28,6 +28,10 @@ export default {
   props: {
     audio: {
       type: String,
+      require: true
+    },
+    index: {
+      type: Number,
       require: true
     }
   },
@@ -87,8 +91,8 @@ export default {
       }, false)
 
       music.addEventListener("ended", ev => {
-        const paused = document.getElementById("playPause")
-        paused.setAttribute("class", 'fa-play')
+        const paused = document.getElementsByClassName("playPause")[this.index]
+        paused.setAttribute("class", 'playPause fa-play')
       }, false)
 
       timeline.addEventListener("click", ev => {
@@ -112,12 +116,12 @@ export default {
           let lastVolume = this.metadata.lastVolume
           music.volume = lastVolume
           this.getVolume().style.width = this.toCssAccept(lastVolume * 100)
-          volumeIcon.setAttribute("class", 'fa-volume')
+          volumeIcon.setAttribute("class", 'volume fa-volume')
         } else {
           this.metadata.lastVolume = music.volume
           music.volume = 0
           this.getVolume().style.width = this.toCssAccept(0)
-          volumeIcon.setAttribute("class", 'fa-volume-mute')
+          volumeIcon.setAttribute("class", 'volume fa-volume-mute')
         }
       }, false)
 
@@ -138,13 +142,13 @@ export default {
     },
     playMusic() {
       const audioPlayer = this.getAudioPlayer()
-      const play = document.getElementById("playPause")
+      const play = document.getElementsByClassName("playPause")[this.index]
       if (audioPlayer.paused) {
         audioPlayer.play()
-        play.setAttribute("class", 'fa-pause')
+        play.setAttribute("class", 'playPause fa-pause')
       } else {
         audioPlayer.pause()
-        play.setAttribute("class", 'fa-play')
+        play.setAttribute("class", 'playPause fa-play')
       }
     },
     makeVolumeSliderVisible() {
@@ -188,25 +192,25 @@ export default {
       this.getTimelineProgressbar().style.width = this.toCssAccept(scale * scaledTimelineLength)
     },
     getAudioPlayer() {
-      return document.getElementById("player")
+      return document.getElementsByClassName("player")[this.index]
     },
     getVolumeSlider() {
-      return document.getElementById("volume-slider")
+      return document.getElementsByClassName("volume-slider")[this.index]
     },
     getVolumebar() {
-      return document.getElementById("volume-bar")
+      return document.getElementsByClassName("volume-bar")[this.index]
     },
     getVolume() {
-      return document.getElementById("current-volume")
+      return document.getElementsByClassName("current-volume")[this.index]
     },
     getVolumeIcon() {
-      return document.getElementById("volume")
+      return document.getElementsByClassName("volume")[this.index]
     },
     getMusicTimeline() {
-      return document.getElementById("timeline")
+      return document.getElementsByClassName("timeline")[this.index]
     },
     getTimelineProgressbar() {
-      return document.getElementById("progressbar")
+      return document.getElementsByClassName("progressbar")[this.index]
     },
   }
 }
@@ -223,7 +227,7 @@ export default {
   width: 300px;
   height: 20px;
 }
-#controls {
+.controls {
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -231,7 +235,7 @@ export default {
   width: inherit;
   height: 20px;
 }
-#playPause {
+.playPause {
   cursor: pointer;
   outline-style: none;
   border-style: none;
@@ -248,11 +252,11 @@ export default {
   background: url("../assets/pause.png");
   background-size: 100% 100%;
 }
-#playtime {
+.playtime {
   width: 65px;
   margin-left: 5px;
 }
-#timeline {
+.timeline {
   margin: auto 5px;
   background: whitesmoke;
   border-radius: 10px;
@@ -260,14 +264,14 @@ export default {
   width: 150px;
   height: 6px;
 }
-#progressbar {
+.progressbar {
   background: gray;
   border-radius: inherit;
   max-width: inherit;
   width: 0;
   height: 6px;
 }
-#volume {
+.volume {
   border-style: none;
   outline-style: none;
   width: 14px;
@@ -283,27 +287,27 @@ export default {
   background-image: url("../assets/mute.png");
   background-size: 100% 100%;
 }
-#volume-slider {
+.volume-slider {
   display: none;
   background: gray;
   border-radius: 10px;
   padding: 5px 10px;
 }
-#volume-bar {
+.volume-bar {
   cursor: pointer;
   border-radius: 10px;
   width: 100px;
   height: 6px;
   background: whitesmoke;
 }
-#current-volume {
+.current-volume {
   border-radius: inherit;
   max-width: inherit;
   width: 0;
   height: 6px;
   background: darkgray;
 }
-#download {
+.download {
   background-image: url("../assets/download.png");
   background-size: 100% 100%;
   border: 0;
